@@ -12,6 +12,7 @@ namespace WindowsFormsApplication1
         List<Control> controllist = new List<Control>(); //control list for news feed page
         List<Control> postlist = new List<Control>();//control list for post news page
         List<Panel> panelList = new List<Panel>(); //create a list for panels
+        List<Control> completeFeedList = new List<Control>(); //list of controls on the complete feed page
         int index;//used for panel index....for previous and next buton
         int maxlength = 1000; // to limit the maximum length of textbox
 
@@ -81,6 +82,8 @@ namespace WindowsFormsApplication1
                 panelList.Add(pane);
                 showNewsFeed(dispcount,i);
             }
+            createNavButtons();
+            /*
             //create buttons for previous and next
             int btnx = panelx + width - 160;
             int btny = panely + height + 15;
@@ -97,6 +100,32 @@ namespace WindowsFormsApplication1
             previous.Location = new Point(btnx,btny);
             previous.Size = new Size(btnwidth, btnheight);
             next.Location = new Point(btnx + btnwidth +10, btny);
+            next.Size = new Size(btnwidth, btnheight);
+            this.Controls.Add(previous);
+            this.Controls.Add(next);
+            //on click previous and next buttons
+            previous.Click += previous_click;
+            next.Click += next_click;
+            */
+        }
+
+        private void createNavButtons()
+        {
+            int btnx = 390;
+            int btny = 485;
+            int btnwidth = 70;
+            int btnheight = 30;
+            Button next = new Button();
+            Button previous = new Button();
+            next.Name = "btnnext";
+            next.Text = "Next";
+            previous.Name = "btnprevious";
+            previous.Text = "Previous";
+
+            //set location and size for buttons
+            previous.Location = new Point(btnx, btny);
+            previous.Size = new Size(btnwidth, btnheight);
+            next.Location = new Point(btnx + btnwidth + 10, btny);
             next.Size = new Size(btnwidth, btnheight);
             this.Controls.Add(previous);
             this.Controls.Add(next);
@@ -186,16 +215,87 @@ namespace WindowsFormsApplication1
         private void txtNumber_click(object sender, EventArgs e)
         {
             string name  = (sender as TextBox).Name;
-            int index1 = name.IndexOf("_");
-            int id = int.Parse((name.Substring(index1 + 1)));
-            MessageBox.Show("Hello");
+            //int index1 = name.IndexOf("_");
+            //int id = int.Parse((name.Substring(index1 + 1)));
+            //MessageBox.Show("Hello");
+            /* for (int i = 0; i < panelList.Count; i++)
+             {
+                 panelList[i].Hide();
+             }*/
+            int feedindex = panelList[index].Controls.GetChildIndex(sender as TextBox);
             for (int i = 0; i < panelList.Count; i++)
             {
                 panelList[i].Hide();
             }
-           
+            post.Hide();
+            this.Controls.Find("btnnext", true)[0].Hide();
+            this.Controls.Find("btnprevious", true)[0].Hide();
+            TextBox completefeed = new TextBox();
+            //create a textbox
+            completefeed.Name = "completefeed";
+            completefeed.Text = panelList[index].Controls[feedindex].Text;
+
+            //set properties of the textbox
+            completefeed.Multiline = true;
+            completefeed.WordWrap = true;
+            completefeed.MaxLength = maxlength+1000;
+            completefeed.ScrollBars = ScrollBars.Vertical;
+
+            //set the location of the textbox
+            completefeed.Location = new Point(155, 80);
+
+            //set the size of the textbox               
+            completefeed.Size = new Size(369, 153);
+            this.Controls.Add(completefeed);
+            completeFeedList.Add(completefeed);
+            completefeed.Show();
+
+            Button backtocomplete = new Button();
+            backtocomplete.Name = "btncomplete";
+            backtocomplete.Text = "Back";
+            backtocomplete.Location = new Point(454, 248);
+            backtocomplete.Size = new Size(70, 30);
+            this.Controls.Add(backtocomplete);
+            completeFeedList.Add(backtocomplete);
+            backtocomplete.Click += backtocomplete_click; 
+            /*int panelx = 150;
+            int panely = 70;
+            //panel size
+            int width = 400;
+            int height = 400;
+            Panel pane = new Panel();
+            pane.Name = "panefull";
+            pane.AutoScroll = true;
+            pane.Location = new Point(panelx, panely);
+            Button backtocomplete = new Button();
+            backtocomplete.Name = "btncomplete";
+            backtocomplete.Text = "Back";                                                                                                       
+            upvote.Location = new Point(panelList[index], starty);
+            upvote.Size = new Size(btnwidth, btnheight);
+            */
+
+
+
+            //this.Controls.Find(name, true)[0].Show();
+
 
         }
+
+        private void backtocomplete_click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < completeFeedList.Count; i++)
+            {
+                completeFeedList[i].Hide();
+            }
+            post.Show();
+            this.Controls.Find("btnnext", true)[0].Show();
+            this.Controls.Find("btnprevious", true)[0].Show();
+            for (int i = 0; i < panelList.Count; i++)
+            {
+                panelList[i].Show();
+            }
+        }
+
         //label for footer
         private void label2_Click(object sender, EventArgs e)
         {
