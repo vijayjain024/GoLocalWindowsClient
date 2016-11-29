@@ -4,6 +4,9 @@ using Windows.Devices.Geolocation;
 using System.Device.Location;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Net.Http;
+using WindowsFormsApplication1.Models;
+using Newtonsoft.Json;
 
 namespace WindowsFormsApplication1
 {
@@ -15,6 +18,7 @@ namespace WindowsFormsApplication1
         List<Control> completeFeedList = new List<Control>(); //list of controls on the complete feed page
         int index;//used for panel index....for previous and next buton
         int maxlength = 1000; // to limit the maximum length of textbox
+        string apikey = "";
 
         public GoLocalWindowsClient()
         {
@@ -32,7 +36,7 @@ namespace WindowsFormsApplication1
             //MessageBox.Show(String.Format("Lat: {0}, Long: {1}", e.Position.Location.Latitude, e.Position.Location.Longitude));
         }
 
-        private void login_Click(object sender, EventArgs e)
+        private async void login_Click(object sender, EventArgs e)
         {
             GeoCoordinateWatcher watcher = new GeoCoordinateWatcher();
             watcher.PositionChanged += watcher_PositionChanged;
@@ -44,8 +48,21 @@ namespace WindowsFormsApplication1
             login.Hide();
             applogo.Show();
             post.Show();
-            int feedcount = 5;
-            createPanel(feedcount); //calls method to create panels based on number of feeds received
+            //int feedcount = 5;
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage();
+            request.RequestUri = new Uri("http://localhost:61731/api/feedsService");
+            //client.BaseAddress = new Uri("http://localhost:61731/api/feedsService");
+            request.Method = HttpMethod.Get;
+            apikey = 123 + "-" + userinput.Text;
+            request.Headers.Add("apiKey", apikey);
+            HttpResponseMessage message = await client.SendAsync(request);
+            if (message.IsSuccessStatusCode)
+            {
+                string response = await message.Content.ReadAsStringAsync();
+                List<FeedModel> res = JsonConvert.DeserializeObject<List<FeedModel>>(response);
+            }
+                //createPanel(); //calls method to create panels based on number of feeds received
             label1.Hide();
         }
 
@@ -148,6 +165,7 @@ namespace WindowsFormsApplication1
 
         public void showNewsFeed(int feedcount, int panelindex)
         {
+
             //textbox coordinates relative to pane 
             int startx = 5;
             int starty = 10;

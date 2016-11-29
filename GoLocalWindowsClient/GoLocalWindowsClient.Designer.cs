@@ -63,9 +63,9 @@
             this.userlabel.AutoSize = true;
             this.userlabel.Location = new System.Drawing.Point(249, 272);
             this.userlabel.Name = "userlabel";
-            this.userlabel.Size = new System.Drawing.Size(57, 17);
+            this.userlabel.Size = new System.Drawing.Size(63, 17);
             this.userlabel.TabIndex = 5;
-            this.userlabel.Text = "API Key";
+            this.userlabel.Text = "Email ID:";
             this.userlabel.Click += new System.EventHandler(this.userlabel_Click);
             // 
             // post
