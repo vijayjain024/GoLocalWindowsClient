@@ -11,8 +11,9 @@ namespace WindowsFormsApplication1
     {
         List<Control> controllist = new List<Control>(); //control list for news feed page
         List<Control> postlist = new List<Control>();//control list for post news page
-
-        int maxlength = 1000;
+        List<Panel> panelList = new List<Panel>(); //create a list for panels
+        int index;//used for panel index....for previous and next buton
+        int maxlength = 1000; // to limit the maximum length of textbox
 
         public GoLocalWindowsClient()
         {
@@ -23,7 +24,6 @@ namespace WindowsFormsApplication1
         {
             // GetLocation();
             label2.Hide();
-
         }
 
         private void watcher_PositionChanged(object sender, GeoPositionChangedEventArgs<GeoCoordinate> e)
@@ -43,30 +43,97 @@ namespace WindowsFormsApplication1
             login.Hide();
             applogo.Show();
             post.Show();
-            int feedcount = 3;
-            //add logic to update feedcount fro the web service
-            showNewsFeed(feedcount);
+            int feedcount = 5;
+            createPanel(feedcount); //calls method to create panels based on number of feeds received
             label1.Hide();
         }
 
-        public void showNewsFeed(int feedcount)
+        public void createPanel(int feedcount)
         {
-            //textbox coordinates
-            int startx = 153;
-            int starty = 82;
+            int noOfPanels = (int)Math.Ceiling(((double)feedcount) / 2); // calculate number of panels required
+            //panel coordinates
+            int panelx = 150;
+            int panely = 70;
+            //panel size
+            int width = 400;
+            int height = 400;
+            int dispcount = 0; //number of feeds to be displayed on a panel
+            for (int i = 0; i < noOfPanels; i++)
+            {
+                Panel pane = new Panel();
+                pane.Name = "pane" + i;
+                pane.AutoScroll = true;
+                pane.Location = new Point(panelx, panely);
+               // int paneheight = 0;
+                if (feedcount <= 2)
+                {
+                    dispcount = feedcount;
+                 //   paneheight = 195 * dispcount;
+                }
+                else
+                {
+                    dispcount = 2;
+                    feedcount -= 2;
+                   // paneheight = 195 * 5;
+                }
+                pane.Size = new Size(width, height);
+                this.Controls.Add(pane);
+                panelList.Add(pane);
+                showNewsFeed(dispcount,i);
+            }
+            //create buttons for previous and next
+            int btnx = panelx + width - 160;
+            int btny = panely + height + 15;
+            int btnwidth = 70;
+            int btnheight = 30;
+            Button next = new Button();
+            Button previous = new Button();
+            next.Name = "btnnext";
+            next.Text = "Next";
+            previous.Name = "btnprevious";
+            previous.Text = "Previous";
+
+            //set location and size for buttons
+            previous.Location = new Point(btnx,btny);
+            previous.Size = new Size(btnwidth, btnheight);
+            next.Location = new Point(btnx + btnwidth +10, btny);
+            next.Size = new Size(btnwidth, btnheight);
+            this.Controls.Add(previous);
+            this.Controls.Add(next);
+            //on click previous and next buttons
+            previous.Click += previous_click;
+            next.Click += next_click;
+        }
+
+        private void next_click(object sender, EventArgs e)
+        {
+            if (index < panelList.Count - 1)
+                panelList[++index].BringToFront();
+        }
+
+        private void previous_click(object sender, EventArgs e)
+        {
+            if (index > 0)
+                panelList[--index].BringToFront();
+        }
+
+        public void showNewsFeed(int feedcount, int panelindex)
+        {
+            //textbox coordinates relative to pane 
+            int startx = 5;
+            int starty = 10;
             int width = 369;
             int height = 153;
-            //button coordinates
-            int btnstartx = 362;
+            //button coordinates relative to pane 
+            int btnstartx = 214;
             int btnwidth = 70;
             int btnheight = 27;
-            
             for (int i = 1; i <= feedcount; i++)
             {
                 //create a textbox
                 TextBox txtNumber = new TextBox();
                 txtNumber.Name = "txtNumber_"+i;
-                txtNumber.Text = i + "";
+                txtNumber.Text = i + "_" + panelindex;
 
                 //set properties of the textbox
                 txtNumber.Multiline = true;
@@ -85,6 +152,8 @@ namespace WindowsFormsApplication1
                 this.Controls.Add(txtNumber);
                 // add the textbox to the list
                 controllist.Add(txtNumber);
+                //add textbox to panel
+                panelList[panelindex].Controls.Add(txtNumber);
                 //adjust the height for the buttons
                 starty += 5 + height;
 
@@ -105,76 +174,57 @@ namespace WindowsFormsApplication1
                 this.Controls.Add(downvote);
                 controllist.Add(upvote);
                 controllist.Add(downvote);
-
+                //add controls to the panel
+                panelList[panelindex].Controls.Add(upvote);
+                panelList[panelindex].Controls.Add(downvote);
                 starty += btnheight + 10;
-                //TextBox commentNumber = new TextBox();
-                //commentNumber.Name = "txtNumber" + 20 + i;
-                //commentNumber.Text = "Enter a comment here";
-                // Create Variables to Define "X" and "Y" Locations
-                //var txtLocX = txtNumber.Location.X;
-                //var txtLocY = txtNumber.Location.Y;
-
-                //Set your TextBox Location Here
-                //txtLocX = 153;
-                //txtLocY = 82;
-                //commentNumber.Location = new Point(startx, starty);
-
-
-                //set the size of the textbox
-                //commentNumber.Multiline = true;
-                //commentNumber.ReadOnly = true;
-                //commentNumber.WordWrap = true;
-                //commentNumber.ScrollBars = ScrollBars.Vertical;
-                //commentNumber.Size = new Size(width, height);
-
-                // This adds a new TextBox
-                //this.Controls.Add(commentNumber);
-
-                //starty += 30;
-
-
-
             }
-            label2.Location = new Point(startx, starty + 15);
-            label2.Show();
+            //label2.Location = new Point(startx, starty + 15);
+            //label2.Show();
         }
 
         private void txtNumber_click(object sender, EventArgs e)
         {
             string name  = (sender as TextBox).Name;
-            int index = name.IndexOf("_");
-            int id = int.Parse((name.Substring(index + 1)));
+            int index1 = name.IndexOf("_");
+            int id = int.Parse((name.Substring(index1 + 1)));
+            MessageBox.Show("Hello");
+            for (int i = 0; i < panelList.Count; i++)
+            {
+                panelList[i].Hide();
+            }
+           
 
         }
-
+        //label for footer
         private void label2_Click(object sender, EventArgs e)
         {
-
-
-
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        /*private void textBox1_TextChanged(object sender, EventArgs e)
         {
-                    }
+        }*/
 
+        //label for api key
         private void userlabel_Click(object sender, EventArgs e)
         {
-
         }
-
+        //function for post news button click
         private void post_Click(object sender, EventArgs e)
         {
             // need to implement code to post a story to the app here
             // hide all elements and show only a textbox (+ image, if possible)
             // add a button to post the new story
-
             //hide the post news button
             post.Hide();
-
-            for (int i = 0; i < controllist.Count; i++)
+            //hide previous and next button
+            this.Controls.Find("btnnext",true)[0].Hide();
+            this.Controls.Find("btnprevious", true)[0].Hide();
+            //for (int i = 0; i < controllist.Count; i++)
+            for (int i = 0; i < panelList.Count; i++)
             {
-                controllist[i].Hide();
+                //controllist[i].Hide();
+                panelList[i].Hide();
             }
             //create a textbox
             TextBox txtNumber = new TextBox();
@@ -223,9 +273,15 @@ namespace WindowsFormsApplication1
                 postlist[i].Hide();
             }
             post.Show();
-            for (int i = 0; i < controllist.Count; i++)
+            this.Controls.Find("btnnext", true)[0].Show();
+            this.Controls.Find("btnprevious", true)[0].Show();
+            /*for (int i = 0; i < controllist.Count; i++)
             {
                 controllist[i].Show();
+            }*/
+            for (int i = 0; i < panelList.Count; i++)
+            {
+                panelList[i].Show();
             }
         }
     }

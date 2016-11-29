@@ -86,7 +86,7 @@
             // 
             // desclbl
             // 
-            this.desclbl.Location = new System.Drawing.Point(204, 222);
+            this.desclbl.Location = new System.Drawing.Point(222, 222);
             this.desclbl.Name = "desclbl";
             this.desclbl.Size = new System.Drawing.Size(255, 30);
             this.desclbl.TabIndex = 9;
