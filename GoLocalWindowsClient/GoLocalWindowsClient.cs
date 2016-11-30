@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Forms;
-using Windows.Devices.Geolocation;
 using System.Device.Location;
 using System.Drawing;
 using System.Collections.Generic;
@@ -19,6 +18,8 @@ namespace WindowsFormsApplication1
         int index;//used for panel index....for previous and next buton
         int maxlength = 1000; // to limit the maximum length of textbox
         string apikey = "";
+        string latLng = string.Empty;
+        List<FeedModel> result = new List<FeedModel>();
 
         public GoLocalWindowsClient()
         {
@@ -33,7 +34,7 @@ namespace WindowsFormsApplication1
 
         private void watcher_PositionChanged(object sender, GeoPositionChangedEventArgs<GeoCoordinate> e)
         {
-            //MessageBox.Show(String.Format("Lat: {0}, Long: {1}", e.Position.Location.Latitude, e.Position.Location.Longitude));
+            latLng = e.Position.Location.Latitude + "," + e.Position.Location.Longitude;
         }
 
         private async void login_Click(object sender, EventArgs e)
@@ -51,8 +52,7 @@ namespace WindowsFormsApplication1
             //int feedcount = 5;
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage();
-            request.RequestUri = new Uri("http://localhost:61731/api/feedsService");
-            //client.BaseAddress = new Uri("http://localhost:61731/api/feedsService");
+            request.RequestUri = new Uri("http://localhost:61731/api/FeedsService" + (latLng == string.Empty ? "" : "?latLng=" + latLng));
             request.Method = HttpMethod.Get;
             apikey = 123 + "-" + userinput.Text;
             request.Headers.Add("apiKey", apikey);
@@ -60,14 +60,15 @@ namespace WindowsFormsApplication1
             if (message.IsSuccessStatusCode)
             {
                 string response = await message.Content.ReadAsStringAsync();
-                List<FeedModel> res = JsonConvert.DeserializeObject<List<FeedModel>>(response);
+                result = JsonConvert.DeserializeObject<List<FeedModel>>(response);
             }
-                //createPanel(); //calls method to create panels based on number of feeds received
+            createPanel(result); //calls method to create panels based on number of feeds received
             label1.Hide();
         }
 
-        public void createPanel(int feedcount)
+        void createPanel(List<FeedModel> feed)
         {
+            int feedcount = feed.Count;
             int noOfPanels = (int)Math.Ceiling(((double)feedcount) / 2); // calculate number of panels required
             //panel coordinates
             int panelx = 150;
@@ -97,33 +98,9 @@ namespace WindowsFormsApplication1
                 pane.Size = new Size(width, height);
                 this.Controls.Add(pane);
                 panelList.Add(pane);
-                showNewsFeed(dispcount,i);
+                showNewsFeed(dispcount,i,result);
             }
             createNavButtons();
-            /*
-            //create buttons for previous and next
-            int btnx = panelx + width - 160;
-            int btny = panely + height + 15;
-            int btnwidth = 70;
-            int btnheight = 30;
-            Button next = new Button();
-            Button previous = new Button();
-            next.Name = "btnnext";
-            next.Text = "Next";
-            previous.Name = "btnprevious";
-            previous.Text = "Previous";
-
-            //set location and size for buttons
-            previous.Location = new Point(btnx,btny);
-            previous.Size = new Size(btnwidth, btnheight);
-            next.Location = new Point(btnx + btnwidth +10, btny);
-            next.Size = new Size(btnwidth, btnheight);
-            this.Controls.Add(previous);
-            this.Controls.Add(next);
-            //on click previous and next buttons
-            previous.Click += previous_click;
-            next.Click += next_click;
-            */
         }
 
         private void createNavButtons()
@@ -163,7 +140,7 @@ namespace WindowsFormsApplication1
                 panelList[--index].BringToFront();
         }
 
-        public void showNewsFeed(int feedcount, int panelindex)
+        void showNewsFeed(int feedcount, int panelindex, List<FeedModel> feeds)
         {
 
             //textbox coordinates relative to pane 
@@ -180,7 +157,7 @@ namespace WindowsFormsApplication1
                 //create a textbox
                 TextBox txtNumber = new TextBox();
                 txtNumber.Name = "txtNumber_"+i;
-                txtNumber.Text = i + "_" + panelindex;
+                txtNumber.Text = feeds[(i+2*panelindex-1)].Content;
 
                 //set properties of the textbox
                 txtNumber.Multiline = true;
