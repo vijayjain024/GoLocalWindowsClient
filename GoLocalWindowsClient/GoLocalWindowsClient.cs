@@ -52,7 +52,7 @@ namespace WindowsFormsApplication1
             //int feedcount = 5;
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage();
-            request.RequestUri = new Uri("http://localhost:61731/api/FeedsService" + (latLng == string.Empty ? "" : "?latLng=" + latLng));
+            request.RequestUri = new Uri("http://golocalweb.azurewebsites.net/api/FeedsService" + (latLng == string.Empty ? "" : "?latLng=" + latLng));
             request.Method = HttpMethod.Get;
             apikey = 123 + "-" + userinput.Text;
             request.Headers.Add("apiKey", apikey);
